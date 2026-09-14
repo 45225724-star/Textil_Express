@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Home - Textil Express</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Bienvenido a la Home, {{ usuario }}</h1>
+        <p>Has iniciado sesión exitosamente en la plataforma de gestión y cotización.</p>
+        <hr>
+        <a href="/logout" class="btn-logout">Cerrar Sesión</a>
+    </div>
+</body>
+</html>

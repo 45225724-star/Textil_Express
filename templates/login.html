@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión - Textil Express</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Confecciones Textil Express</h2>
+        
+        <!-- Mensajes de error si las credenciales fallan -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="/login" method="POST">
+            <label>Correo Electrónico:</label>
+            <input type="email" name="email" placeholder="ejemplo@textil.com" required>
+            
+            <label>Contraseña:</label>
+            <input type="password" name="password" placeholder="********" required>
+            
+            <button type="submit">Ingresar al Sistema</button>
+        </form>
+    </div>
+</body>
+</html>
