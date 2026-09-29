@@ -1,64 +1,210 @@
-# app.py
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from database import SessionLocal, init_db
-from models import Usuario
+from datetime import datetime
+import os
+from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask_sqlalchemy import SQLAlchemy
 
+# Inicialización de la aplicación Flask
 app = Flask(__name__)
-app.secret_key = "clave_secreta_textil_express" # Necesario para gestionar sesiones
+app.config['SECRET_KEY'] = 'clave_secreta_super_segura_textil_express'
 
-# Inicializar base de datos al arrancar el servidor
-init_db()
+# Configuración de la base de datos SQLite
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    'sqlite:///' + os.path.join(basedir, 'instance', 'textil_express.db')
+)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-@app.route("/")
-def raiz():
-    # Lo primero que muestra el sistema al abrir el link es el login
-    return redirect(url_for('login'))
+db = SQLAlchemy(app)
 
-@app.route("/login", methods=["GET", "POST"])
+
+# --- Modelos de Base de Datos (ORM) ---
+class Producto(db.Model):
+  __tablename__ = 'productos'
+  id = db.Column(db.Integer, primary_key=True)
+  nombre = db.Column(db.String(100), nullable=False)
+  categoria = db.Column(db.String(50), nullable=False)
+  stock = db.Column(db.Integer, default=0)
+  precio = db.Column(db.Float, nullable=False)
+
+
+class Orden(db.Model):
+  __tablename__ = 'ordenes'
+  id = db.Column(db.Integer, primary_key=True)
+  ticket = db.Column(db.String(20), unique=True, nullable=False)
+  cliente = db.Column(db.String(100), nullable=False)
+  servicio = db.Column(db.String(100), nullable=False)
+  estado = db.Column(db.String(50), default='1. Recepción')
+  costo = db.Column(db.Float, nullable=False)
+  fecha = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Usuario(db.Model):
+  __tablename__ = 'usuarios'
+  id = db.Column(db.Integer, primary_key=True)
+  email = db.Column(db.String(100), unique=True, nullable=False)
+  password = db.Column(db.String(100), nullable=False)
+  rol = db.Column(db.String(20), default='cliente')
+
+
+# --- Rutas y Controladores ---
+
+
+@app.route('/')
+@app.route('/home')
+def index():
+  """Renderiza la página de inicio y recupera el usuario en sesión."""
+  usuario_nombre = session.get('usuario_nombre')
+  return render_template('index.html', usuario_nombre=usuario_nombre)
+
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == "POST":
-        correo = request.form["email"]
-        clave = request.form["password"]
+  """Gestiona la autenticación de usuarios."""
+  if request.method == 'POST':
+    email = request.form.get('email')
+    password = request.form.get('password')
 
-        db = SessionLocal()
-        try:
-            # Buscar el usuario en la base de datos SQLite
-            usuario = db.query(Usuario).filter(Usuario.email == correo, Usuario.password == clave).first()
-            if usuario:
-                # Guardar datos en la sesión del navegador
-                session["usuario_nombre"] = usuario.nombre
-                session["usuario_email"] = usuario.email
-                flash("¡Login exitoso!", "success")
-                return redirect(url_for('home'))
-            else:
-                flash("Correo o contraseña incorrectos.", "error")
-        finally:
-            db.close()
+    usuario = Usuario.query.filter_by(email=email, password=password).first()
 
-    return render_template("login.html")
+    if usuario:
+      session['usuario_nombre'] = usuario.email.split('@')[0]
+      if usuario.rol == 'admin':
+        return redirect(url_for('admin_dashboard'))
+      else:
+        flash('Inicio de sesión exitoso.', 'success')
+        return redirect(url_for('index'))
+    else:
+      flash('Credenciales inválidas. Intente nuevamente.', 'danger')
 
-@app.route("/home")
-def home():
-    # Validar si el usuario ha iniciado sesión previamente
-    if "usuario_nombre" not in session:
-        flash("Por favor, inicia sesión para acceder a la home.", "error")
-        return redirect(url_for('login'))
-    
-    return render_template("index.html", usuario=session["usuario_nombre"])
+  return render_template('login.html')
 
-@app.route("/logout")
+
+@app.route('/logout')
 def logout():
-    session.clear()
-    return redirect(url_for('login'))
+  """Cierra la sesión del usuario actual."""
+  session.pop('usuario_nombre', None)
+  flash('Sesión cerrada correctamente.', 'success')
+  return redirect(url_for('index'))
 
-if __name__ == "__main__":
-    # Registrar un usuario por defecto si la BD está vacía para pruebas rápidas
-    db = SessionLocal()
-    if not db.query(Usuario).filter(Usuario.email == "admin@textil.com").first():
-        admin_default = Usuario(nombre="Administrador Taller", email="admin@textil.com", password="123", rol="administrador")
-        db.add(admin_default)
-        db.commit()
-    db.close()
 
-    # Correr el servidor web local
-    app.run(debug=True)
+@app.route('/cotizador', methods=['GET', 'POST'])
+def cotizador():
+  """Módulo A: Cotizador Web Paramétrico."""
+  presupuesto = None
+  detalle = None
+
+  if request.method == 'POST':
+    prenda = request.form.get('prenda')
+    servicio = request.form.get('servicio')
+    urgencia = int(request.form.get('urgencia', 1))
+
+    precios_base = {'Pantalón': 15, 'Vestido': 30, 'Chaqueta': 25}
+    precio_servicio = {'Entallado': 10, 'Dobladillo': 5, 'Cierre': 15}
+
+    costo_calculado = precios_base.get(prenda, 0) + precio_servicio.get(
+        servicio, 0
+    )
+    multiplicador_urgencia = 1.5 if urgencia == 2 else 1.0
+    presupuesto = costo_calculado * multiplicador_urgencia
+    detalle = f'{prenda} - {servicio}'
+
+  return render_template(
+      'cotizador.html', presupuesto=presupuesto, detalle=detalle
+  )
+
+
+@app.route('/catalogo')
+def catalogo():
+  """Módulo B: Catálogo de Mercería."""
+  productos = Producto.query.all()
+  return render_template('catalogo.html', productos=productos)
+
+
+@app.route('/tracking', methods=['GET', 'POST'])
+def tracking():
+  """Módulo D: Tracking de Servicios Textiles."""
+  orden_encontrada = None
+  if request.method == 'POST':
+    ticket = request.form.get('ticket')
+    orden_encontrada = Orden.query.filter_by(ticket=ticket).first()
+    if not orden_encontrada:
+      flash('Número de ticket no encontrado.', 'warning')
+
+  return render_template('tracking.html', orden=orden_encontrada)
+
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin_dashboard():
+  """Módulo E: Panel de Gestión Administrativa."""
+  # Datos iniciales de prueba si la base de datos está vacía
+  if not Orden.query.first():
+    db.session.add(
+        Orden(
+            ticket='TKT-001',
+            cliente='Ana Torres',
+            servicio='Entallado Vestido',
+            costo=45,
+            estado='2. En Taller',
+        )
+    )
+    db.session.add(
+        Orden(
+            ticket='TKT-002',
+            cliente='Carlos Ruiz',
+            servicio='Cambio Cierre',
+            costo=30,
+            estado='1. Recepción',
+        )
+    )
+    db.session.add(
+        Usuario(
+            email='admin@textilexpress.com',
+            password='adminpassword',
+            rol='admin',
+        )
+    )
+    db.session.add(
+        Usuario(
+            email='cliente@mail.com', password='clientepassword', rol='cliente'
+        )
+    )
+    db.session.add(
+        Producto(
+            nombre='Hilo Poliéster Negro',
+            categoria='Hilos',
+            stock=50,
+            precio=2.50,
+        )
+    )
+    db.session.add(
+        Producto(
+            nombre='Cierre YKK 60cm Marrón',
+            categoria='Cierres',
+            stock=20,
+            precio=5.00,
+        )
+    )
+    db.session.commit()
+
+  if request.method == 'POST':
+    orden_id = request.form.get('orden_id')
+    nuevo_estado = request.form.get('nuevo_estado')
+    orden = Orden.query.get(orden_id)
+    if orden:
+      orden.estado = nuevo_estado
+      db.session.commit()
+      flash('Estado de la orden actualizado.', 'success')
+
+  ordenes_activas = Orden.query.all()
+  return render_template('admin.html', ordenes=ordenes_activas)
+
+
+if __name__ == '__main__':
+  if not os.path.exists(os.path.join(basedir, 'instance', 'textil_express.db')):
+    if not os.path.exists(os.path.join(basedir, 'instance')):
+      os.makedirs(os.path.join(basedir, 'instance'))
+    with app.app_context():
+      db.create_all()
+      print('Base de datos creada exitosamente.')
+
+  app.run(debug=True, port=5000)

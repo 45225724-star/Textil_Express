@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Textil Express - Cotizador</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header style="background-color: #1e3a8a; padding: 1rem 2rem; color: white;">
+        <h2>✂️ Textil Express | <a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">Inicio</a></h2>
+    </header>
+    
+    <div style="max-width: 1000px; margin: 2rem auto; padding: 0 1rem;">
+        <h2>📐 Cotizador Web Paramétrico</h2>
+        <p>Seleccione las características de su prenda para calcular el costo en tiempo real.</p>
+        
+        <div style="display: flex; gap: 2rem; margin-top: 1.5rem;">
+            <!-- Formulario -->
+            <div style="background: white; padding: 2rem; border-radius: 8px; flex: 1; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <form method="POST">
+                    <label>Tipo de Prenda:</label>
+                    <select name="prenda" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;">
+                        <option value="Pantalón">Pantalón / Jeans</option>
+                        <option value="Vestido">Vestido</option>
+                        <option value="Chaqueta">Chaqueta / Saco</option>
+                    </select>
+
+                    <label>Tipo de Servicio:</label>
+                    <select name="servicio" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;">
+                        <option value="Dobladillo">Dobladillo</option>
+                        <option value="Entallado">Entallado</option>
+                        <option value="Cierre">Cambio de Cierre</option>
+                    </select>
+
+                    <label>Nivel de Urgencia:</label>
+                    <select name="urgencia" style="width: 100%; padding: 0.5rem; margin-bottom: 1.5rem;">
+                        <option value="1">Normal (48 hrs)</option>
+                        <option value="2">Express (+50%, 24 hrs)</option>
+                    </select>
+
+                    <button type="submit" style="background: #0d9488; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; width: 100%; font-weight: bold; cursor: pointer;">Calcular Cotización</button>
+                </form>
+            </div>
+
+            <!-- Resultado -->
+            <div style="background: #ecfdf5; padding: 2rem; border-radius: 8px; flex: 1; border: 2px solid #10b981; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h3>Resumen del Presupuesto</h3>
+                {% if presupuesto %}
+                    <p>Servicio: <strong>{{ detalle }}</strong></p>
+                    <h1 style="color: #10b981; font-size: 2.5rem; margin: 1rem 0;">${{ "%.2f"|format(presupuesto) }} USD</h1>
+                    <p style="color: #555; font-size: 0.9rem;">Incluye insumos básicos de costura.</p>
+                    <a href="#" style="background: #10b981; color: white; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px; display: inline-block; margin-top: 1rem; font-weight: bold;">Generar Presupuesto PDF</a>
+                {% else %}
+                    <p style="color: #666; margin-top: 2rem;">Complete los parámetros a la izquierda para visualizar el costo estimado.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

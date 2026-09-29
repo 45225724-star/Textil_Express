@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Textil Express - Tracking</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header style="background-color: #1e3a8a; padding: 1rem 2rem; color: white;">
+        <h2>✂️ Textil Express | <a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">Inicio</a></h2>
+    </header>
+
+    <div style="max-width: 600px; margin: 3rem auto; padding: 0 1rem;">
+        <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h2>🔍 Seguimiento de Estado de Prendas</h2>
+            <p>Ingrese su número de ticket para conocer el avance en el taller.</p>
+            
+            <form method="POST" style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                <input type="text" name="ticket" placeholder="Ej. TKT-001" required style="flex: 1; padding: 0.5rem;">
+                <button type="submit" style="background: #1e3a8a; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Rastrear</button>
+            </form>
+
+            {% if orden %}
+            <div style="margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem;">
+                <h4>Detalle del Ticket: {{ orden.ticket }}</h4>
+                <p><strong>Cliente:</strong> {{ orden.cliente }}</p>
+                <p><strong>Servicio:</strong> {{ orden.servicio }}</p>
+                <p><strong>Estado Actual:</strong> 
+                    <span style="background: #f59e0b; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.9rem;">
+                        {{ orden.estado }}
+                    </span>
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

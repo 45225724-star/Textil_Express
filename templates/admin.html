@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Textil Express - Panel Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header style="background-color: #1e3a8a; padding: 1rem 2rem; color: white; display: flex; justify-content: space-between; align-items: center;">
+        <h2>⚙️ Panel de Gestión Administrativa</h2>
+        <a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">Cerrar Sesión</a>
+    </header>
+
+    <div style="max-width: 1100px; margin: 2rem auto; padding: 0 1rem;">
+        <h3>Control de Órdenes Activas en Taller</h3>
+        
+        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f1f5f9; text-align: left;">
+                        <th style="padding: 0.75rem;">Ticket</th>
+                        <th style="padding: 0.75rem;">Cliente</th>
+                        <th style="padding: 0.75rem;">Servicio</th>
+                        <th style="padding: 0.75rem;">Costo</th>
+                        <th style="padding: 0.75rem;">Estado Actual</th>
+                        <th style="padding: 0.75rem;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in ordenes %}
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 0.75rem;"><strong>{{ o.ticket }}</strong></td>
+                        <td style="padding: 0.75rem;">{{ o.cliente }}</td>
+                        <td style="padding: 0.75rem;">{{ o.servicio }}</td>
+                        <td style="padding: 0.75rem;">${{ "%.2f"|format(o.costo) }}</td>
+                        <td style="padding: 0.75rem;">{{ o.estado }}</td>
+                        <td style="padding: 0.75rem;">
+                            <form action="{{ url_for('admin_dashboard') }}" method="POST" style="display: flex; gap: 0.5rem;">
+                                <input type="hidden" name="orden_id" value="{{ o.id }}">
+                                <select name="nuevo_estado" style="padding: 0.25rem;">
+                                    <option value="1. Recepción">1. Recepción</option>
+                                    <option value="2. En Taller" selected>2. En Taller</option>
+                                    <option value="3. Control Calidad">3. Control Calidad</option>
+                                    <option value="4. Listo / Entrega">4. Listo / Entrega</option>
+                                </select>
+                                <button type="submit" style="background: #0d9488; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer;">Actualizar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

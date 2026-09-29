@@ -2,15 +2,61 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Home - Textil Express</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Textil Express - Inicio</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Bienvenido a la Home, {{ usuario }}</h1>
-        <p>Has iniciado sesión exitosamente en la plataforma de gestión y cotización.</p>
-        <hr>
-        <a href="/logout" class="btn-logout">Cerrar Sesión</a>
+    <!-- Barra de Navegación Global -->
+    <header style="background-color: #1e3a8a; padding: 1rem 2rem; color: white; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0; color: white;">✂️ Textil Express</h2>
+        <nav>
+            <ul style="list-style: none; display: flex; gap: 1.5rem; margin: 0; padding: 0; align-items: center;">
+                <li><a href="{{ url_for('index') }}" style="color: white; text-decoration: none; font-weight: 500;">Inicio</a></li>
+                <li><a href="{{ url_for('cotizador') }}" style="color: white; text-decoration: none; font-weight: 500;">Cotizador</a></li>
+                <li><a href="{{ url_for('catalogo') }}" style="color: white; text-decoration: none; font-weight: 500;">Catálogo</a></li>
+                <li><a href="{{ url_for('tracking') }}" style="color: white; text-decoration: none; font-weight: 500;">Tracking</a></li>
+                
+                {% if usuario_nombre %}
+                    <li style="color: #93c5fd; font-weight: bold;">👤 Hola, {{ usuario_nombre }}</li>
+                    <li><a href="{{ url_for('logout') }}" style="color: #fca5a5; text-decoration: none; font-weight: 500;">Salir</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}" style="color: white; text-decoration: none; font-weight: 500;">Mi Cuenta</a></li>
+                {% endif %}
+                
+                <li><a href="{{ url_for('admin_dashboard') }}" style="color: white; text-decoration: none; font-weight: 500;">Panel Admin</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Mensajes Flash de alerta -->
+    <div style="max-width: 1000px; margin: 1rem auto; padding: 0 1rem;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="padding: 1rem; border-radius: 4px; margin-bottom: 1rem; background-color: {% if category == 'success' %}#d1fae5{% else %}#fee2e2{% endif %}; color: {% if category == 'success' %}#065f46{% else %}#991b1b{% endif %};">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Contenido Principal y Accesos Directos -->
+    <div style="max-width: 1000px; margin: 2rem auto; padding: 0 1rem; text-align: center;">
+        <div style="background: white; padding: 3rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h1>Bienvenido a Confecciones Textil Express</h1>
+            <p style="color: #555; font-size: 1.1rem; margin-top: 1rem;">
+                Plataforma web integrada para cotizaciones de costura, control de inventario de mercería y seguimiento de órdenes en taller.
+            </p>
+            
+            <div style="margin-top: 2.5rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                <a href="{{ url_for('cotizador') }}" style="background: #1e3a8a; color: white; padding: 0.75rem 1.5rem; text-decoration: none; border-radius: 4px; font-weight: bold;">📐 Ir al Cotizador</a>
+                <a href="{{ url_for('catalogo') }}" style="background: #0d9488; color: white; padding: 0.75rem 1.5rem; text-decoration: none; border-radius: 4px; font-weight: bold;">🧵 Ver Catálogo</a>
+                <a href="{{ url_for('tracking') }}" style="background: #f59e0b; color: white; padding: 0.75rem 1.5rem; text-decoration: none; border-radius: 4px; font-weight: bold;">🔍 Tracking de Órdenes</a>
+                <a href="{{ url_for('admin_dashboard') }}" style="background: #475569; color: white; padding: 0.75rem 1.5rem; text-decoration: none; border-radius: 4px; font-weight: bold;">⚙️ Panel Admin</a>
+            </div>
+        </div>
     </div>
 </body>
 </html>

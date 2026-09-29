@@ -1,0 +1,56 @@
+/* Definición de variables de diseño */
+:root {
+    --primary-color: #1e3a8a;   /* Azul Marino */
+    --secondary-color: #0d9488; /* Verde Esmeralda */
+    --success-color: #10b981;   /* Verde Éxito */
+    --accent-color: #f3f4f6;    /* Fondo Gris */
+    --text-color: #1f2937;      /* Texto Oscuro */
+    --white-color: #ffffff;
+    --font-default: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    font-family: var(--font-default);
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    margin: 0;
+}
+
+/* Estilo de la Tarjeta (Contenedor principal de contenido) */
+.card {
+    background-color: var(--white-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+/* Estilo de botones */
+.btn-secondary {
+    background-color: var(--primary-color);
+    color: var(--white-color);
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: var(--white-color);
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 1rem;
+}
+
+/* Estilo de inputs y selects */
+select {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+}
