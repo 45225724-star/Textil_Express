@@ -2,10 +2,13 @@ from datetime import datetime
 import os
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # Inicialización de la aplicación Flask
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'clave_secreta_super_segura_textil_express'
+app.config['SECRET_KEY'] = (
+    'clave_secreta_super_segura_textil_express_2026_key'
+)
 
 # Configuración de la base de datos SQLite
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -42,7 +45,9 @@ class Usuario(db.Model):
   __tablename__ = 'usuarios'
   id = db.Column(db.Integer, primary_key=True)
   email = db.Column(db.String(100), unique=True, nullable=False)
-  password = db.Column(db.String(100), nullable=False)
+  password = db.Column(
+      db.String(255), nullable=False
+  )  # Almacena el hash seguro
   rol = db.Column(db.String(20), default='cliente')
 
 
@@ -52,21 +57,22 @@ class Usuario(db.Model):
 @app.route('/')
 @app.route('/home')
 def index():
-  """Renderiza la página de inicio y recupera el usuario en sesión."""
   usuario_nombre = session.get('usuario_nombre')
   return render_template('index.html', usuario_nombre=usuario_nombre)
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-  """Gestiona la autenticación de usuarios."""
+  """Autenticación segura validando hashes de contraseña."""
   if request.method == 'POST':
     email = request.form.get('email')
     password = request.form.get('password')
 
-    usuario = Usuario.query.filter_by(email=email, password=password).first()
+    # Consulta protegida contra inyección SQL mediante SQLAlchemy ORM (parametrizada)
+    usuario = Usuario.query.filter_by(email=email).first()
 
-    if usuario:
+    # Verificación segura del hash de la contraseña
+    if usuario and check_password_hash(usuario.password, password):
       session['usuario_nombre'] = usuario.email.split('@')[0]
       if usuario.rol == 'admin':
         return redirect(url_for('admin_dashboard'))
@@ -81,7 +87,6 @@ def login():
 
 @app.route('/logout')
 def logout():
-  """Cierra la sesión del usuario actual."""
   session.pop('usuario_nombre', None)
   flash('Sesión cerrada correctamente.', 'success')
   return redirect(url_for('index'))
@@ -89,7 +94,6 @@ def logout():
 
 @app.route('/cotizador', methods=['GET', 'POST'])
 def cotizador():
-  """Módulo A: Cotizador Web Paramétrico."""
   presupuesto = None
   detalle = None
 
@@ -98,11 +102,11 @@ def cotizador():
     servicio = request.form.get('servicio')
     urgencia = int(request.form.get('urgencia', 1))
 
-    precios_base = {'Pantalón': 15, 'Vestido': 30, 'Chaqueta': 25}
-    precio_servicio = {'Entallado': 10, 'Dobladillo': 5, 'Cierre': 15}
+    precios_base = {'Pantalón': 60.0, 'Vestido': 120.0, 'Chaqueta': 95.0}
+    precio_servicio = {'Entallado': 35.0, 'Dobladillo': 20.0, 'Cierre': 45.0}
 
-    costo_calculado = precios_base.get(prenda, 0) + precio_servicio.get(
-        servicio, 0
+    costo_calculado = precios_base.get(prenda, 0.0) + precio_servicio.get(
+        servicio, 0.0
     )
     multiplicador_urgencia = 1.5 if urgencia == 2 else 1.0
     presupuesto = costo_calculado * multiplicador_urgencia
@@ -115,14 +119,12 @@ def cotizador():
 
 @app.route('/catalogo')
 def catalogo():
-  """Módulo B: Catálogo de Mercería."""
   productos = Producto.query.all()
   return render_template('catalogo.html', productos=productos)
 
 
 @app.route('/tracking', methods=['GET', 'POST'])
 def tracking():
-  """Módulo D: Tracking de Servicios Textiles."""
   orden_encontrada = None
   if request.method == 'POST':
     ticket = request.form.get('ticket')
@@ -135,15 +137,13 @@ def tracking():
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_dashboard():
-  """Módulo E: Panel de Gestión Administrativa."""
-  # Datos iniciales de prueba si la base de datos está vacía
   if not Orden.query.first():
     db.session.add(
         Orden(
             ticket='TKT-001',
             cliente='Ana Torres',
             servicio='Entallado Vestido',
-            costo=45,
+            costo=150.0,
             estado='2. En Taller',
         )
     )
@@ -152,28 +152,33 @@ def admin_dashboard():
             ticket='TKT-002',
             cliente='Carlos Ruiz',
             servicio='Cambio Cierre',
-            costo=30,
+            costo=45.0,
             estado='1. Recepción',
         )
     )
+
+    # Creación de usuarios con contraseñas cifradas (Hasheadas)
     db.session.add(
         Usuario(
             email='admin@textilexpress.com',
-            password='adminpassword',
+            password=generate_password_hash('adminpassword'),
             rol='admin',
         )
     )
     db.session.add(
         Usuario(
-            email='cliente@mail.com', password='clientepassword', rol='cliente'
+            email='cliente@mail.com',
+            password=generate_password_hash('clientepassword'),
+            rol='cliente',
         )
     )
+
     db.session.add(
         Producto(
             nombre='Hilo Poliéster Negro',
             categoria='Hilos',
             stock=50,
-            precio=2.50,
+            precio=10.0,
         )
     )
     db.session.add(
@@ -181,7 +186,7 @@ def admin_dashboard():
             nombre='Cierre YKK 60cm Marrón',
             categoria='Cierres',
             stock=20,
-            precio=5.00,
+            precio=18.0,
         )
     )
     db.session.commit()
@@ -205,6 +210,6 @@ if __name__ == '__main__':
       os.makedirs(os.path.join(basedir, 'instance'))
     with app.app_context():
       db.create_all()
-      print('Base de datos creada exitosamente.')
+      print('Base de datos creada exitosamente con seguridad activa.')
 
   app.run(debug=True, port=5000)

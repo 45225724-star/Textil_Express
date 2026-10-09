@@ -21,7 +21,7 @@
                 <p style="color: #666; font-size: 0.9rem;">Categoría: {{ p.categoria }}</p>
                 <p style="color: #666; font-size: 0.9rem;">Stock: {{ p.stock }} unidades</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                    <span style="font-size: 1.25rem; font-weight: bold; color: #1e3a8a;">${{ "%.2f"|format(p.precio) }}</span>
+                    <span style="font-size: 1.25rem; font-weight: bold; color: #1e3a8a;">S/.{{ "%.2f"|format(p.precio) }}</span>
                     <button style="background: #0d9488; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Añadir</button>
                 </div>
             </div>
